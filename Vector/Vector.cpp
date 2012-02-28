@@ -155,10 +155,11 @@ void Vector::add(int value)
     {
         int* arrayPtrTemp;
         arrayPtrTemp = new int[ m_size + DEFAULT_SIZE ];
+        m_capacity = m_size + DEFAULT_SIZE;
         std::copy(m_arrayPtr, m_arrayPtr + m_size, arrayPtrTemp);
-        arrayPtrTemp[ m_size + 1 ] = value;
-        m_size++;
         delete[] m_arrayPtr;
+        arrayPtrTemp[ m_size ] = value;
+        m_size++;
         m_arrayPtr = arrayPtrTemp;
     }
 }

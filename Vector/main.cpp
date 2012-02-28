@@ -3,7 +3,7 @@
 
 int main()
 {
-    Vector v;
+    /*Vector v;
     Vector v1(2,4);
     Vector v2(v1);
     v2.add(10);
@@ -18,6 +18,13 @@ int main()
     v.reverse();
     std::cout<<v<<std::endl;
     std::cout << "Vector capacity is: " << v.capacity() << " \n"
-        << v.size() << " elements are in vector now\n";
+        << v.size() << " elements are in vector now\n";*/
+
+    Vector vector(0,0);
+    for(int i = 0; i < 15; ++i)
+    {
+        vector.add(1);
+        std::cout << vector << std::endl;
+    }
 	return 0;
 } 

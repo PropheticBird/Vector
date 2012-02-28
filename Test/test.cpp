@@ -30,13 +30,11 @@ BOOST_AUTO_TEST_CASE(copyConstructor)
 
 BOOST_AUTO_TEST_CASE(addInt)
 {
-    Vector vector(3,2);
-    for(int i = 0; i < 10; ++i)
-        vector.add(10);
-    for(int i = 3; i < vector.size(); ++i)
-        BOOST_CHECK(vector[i] == 10);
-    vector.add(11);
-    BOOST_CHECK(vector[vector.size() - 1] == 11);
+    Vector vector(1,1);
+    for(int i = 0; i < 15; ++i)
+        vector.add(1);
+    //for(int i = 0; i < vector.size(); ++i)
+    BOOST_CHECK_EQUAL(vector[vector.size() - 1], 1);
 }
 
 
