@@ -10,10 +10,10 @@ Vector::Vector(int size, int value)
     , m_capacity(size + DEFAULT_SIZE)
 {
 
-    if(size < 0)
+    if (size < 0)
         throw std::exception("Wrong size!");
 
-    m_arrayPtr = new int[ m_size + DEFAULT_SIZE ];
+    m_arrayPtr = new int[ m_capacity ];
 
     std::fill_n(m_arrayPtr, m_size, value);
 
@@ -24,7 +24,7 @@ Vector::Vector(const Vector& vcp)
     : m_size(vcp.m_size)
     , m_capacity(vcp.m_capacity)
 {
-    m_arrayPtr = new int[ m_size + DEFAULT_SIZE ];
+    m_arrayPtr = new int[ m_capacity ];
     ++m_arrayCounter;
 
     std::copy(vcp.m_arrayPtr, vcp.m_arrayPtr + vcp.m_size, m_arrayPtr);
@@ -48,10 +48,10 @@ Vector& Vector::operator= (const Vector& rhs)
 
 int& Vector::operator[] (int index)
 {
-    if(m_size == 0)
+    if (m_size == 0)
         throw std::exception("cannot access element, that doesn't exist!\n");
 
-    if(index < 0 || index >= m_size)
+    if (index < 0 || index >= m_size)
         throw std::exception("index is out of range!\n"); 
 
     return m_arrayPtr[index];
@@ -59,67 +59,73 @@ int& Vector::operator[] (int index)
 
 const int& Vector::operator[] (int index) const
 {
-    if(m_size == 0)
+    if (m_size == 0)
         throw std::exception("cannot access element, that doesn't exist!\n");
 
-    if(index < 0 || index >= m_size)
-        throw std::exception("index is out of range!\n"); 
+    if (index < 0 || index >= m_size)
+        throw std::exception("Index is out of range!\n"); 
 
     return m_arrayPtr[index];
 }
 
 Vector Vector::operator+ (const Vector &rhs)
 {
-    if(m_size != rhs.m_size)
-    throw std::exception("Size of arrays have to be equal\n");
-    else
-        {
-            Vector temp(m_size,0);
-            for(int i = 0; i < m_size; ++i)
-                temp.m_arrayPtr[ i ] = m_arrayPtr[ i ] + rhs.m_arrayPtr[ i ];
-            return temp;
-        }
+    if (m_size != rhs.m_size)
+        throw std::exception("Size of arrays have to be equal\n");
+
+    Vector temp(m_size,0);
+    for (int i = 0; i < m_size; ++i)
+       temp.m_arrayPtr[ i ] = m_arrayPtr[ i ] + rhs.m_arrayPtr[ i ];
+    return temp;
+
 }
 
 Vector Vector::operator* (const Vector &rhs)
 {
-    if(m_size == rhs.m_size)
+    if (m_size == rhs.m_size)
     {
         Vector temp(m_size, 0);
-        for(int i = 0; i < m_size; ++i)
+        for (int i = 0; i < m_size; ++i)
            temp.m_arrayPtr[ i ] = m_arrayPtr[ i ] * rhs.m_arrayPtr[ i ];
         return temp;
     }
-    else
-        throw std::exception("Size of arrays have to be equal\n");
+    throw std::exception("Size of arrays have to be equal\n");
 }
 
-Vector operator+ (int value,const Vector& rhs)
+Vector operator+ (int value, const Vector& rhs)
 {
-    Vector temp(rhs.m_size, 0);
-    for(int i = 0; i < rhs.m_size; ++i)
-        temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] + value;
-    return temp;
+    if (rhs.m_size != 0)
+    {
+        Vector temp(rhs.m_size, 0);
+        for (int i = 0; i < rhs.m_size; ++i)
+            temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] + value;
+        return temp;
+    }
+    throw std::exception("Cannot add number to uninitialized Vector\n");
 }
 
 Vector operator* (int value,const Vector& rhs)
 {
-   Vector temp(rhs.m_size, 0);
-    for(int i = 0; i < rhs.m_size; ++i)
-        temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] * value;
-    return temp; 
+    if (rhs.m_size != 0)
+    {
+        Vector temp(rhs.m_size, 0);
+        for (int i = 0; i < rhs.m_size; ++i)
+            temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] * value;
+        return temp; 
+    }
+    throw std::exception("Cannot multiply number to uninitialized Vector\n");
 }
 
 std::ostream& operator<< (std::ostream& os, const Vector& rhs)
 {
-    for(int i = 0; i < rhs.m_size; ++i)
+    for (int i = 0; i < rhs.m_size; ++i)
         os << rhs.m_arrayPtr[ i ] << " ";
     return os;
 }
 
 std::istream& operator>> (std::istream& is, Vector& rhs)
 {
-    for(int i = 0; i < rhs.m_size; ++i)
+    for (int i = 0; i < rhs.m_size; ++i)
         is >> rhs.m_arrayPtr[i];
     return is;
 }
@@ -139,23 +145,18 @@ int Vector::capacity() const
 
 void Vector::reverse()
 {
-    //int temp;
-    for(int i = 0; i < m_size / 2; ++i)
-    std::swap(m_arrayPtr[ i ], m_arrayPtr[ m_size - i - 1]);
+    for (int i = 0; i < m_size / 2; ++i)
+        std::swap(m_arrayPtr[ i ], m_arrayPtr[m_size - i - 1]);
 }
 
 void Vector::add(int value)
 {
-    if(m_size <= m_capacity)
-    {
-        m_arrayPtr[ m_size ] = value;
-        m_size++;
-    }
+    if (m_size < m_capacity)
+        m_arrayPtr[ m_size++ ] = value;
     else
     {
-        int* arrayPtrTemp;
-        arrayPtrTemp = new int[ m_size + DEFAULT_SIZE ];
         m_capacity = m_size + DEFAULT_SIZE;
+        int* arrayPtrTemp = new int[ m_capacity ];
         std::copy(m_arrayPtr, m_arrayPtr + m_size, arrayPtrTemp);
         delete[] m_arrayPtr;
         arrayPtrTemp[ m_size ] = value;

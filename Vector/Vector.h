@@ -12,7 +12,7 @@ class Vector
     friend Vector operator* (int, const Vector&);
 
 public:
-    Vector(int = 0, int = DEFAULT_VALUE);
+    explicit Vector(int = 0, int = DEFAULT_VALUE); /*size, element*/
     Vector(const Vector&);
     ~Vector();
 
