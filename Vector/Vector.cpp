@@ -1,5 +1,4 @@
 #include <iostream>
-#include <exception>
 
 #include "vector.h"
 
@@ -11,7 +10,7 @@ Vector::Vector(int size, int value)
 {
 
     if (size < 0)
-        throw std::exception("Wrong size!");
+        throw WrongIndex();
 
     m_arrayPtr = new int[ m_capacity ];
 
@@ -48,30 +47,18 @@ Vector& Vector::operator= (const Vector& rhs)
 
 int& Vector::operator[] (int index)
 {
-    if (m_size == 0)
-        throw std::exception("cannot access element, that doesn't exist!\n");
-
-    if (index < 0 || index >= m_size)
-        throw std::exception("index is out of range!\n"); 
-
     return m_arrayPtr[index];
 }
 
 const int& Vector::operator[] (int index) const
 {
-    if (m_size == 0)
-        throw std::exception("cannot access element, that doesn't exist!\n");
-
-    if (index < 0 || index >= m_size)
-        throw std::exception("Index is out of range!\n"); 
-
     return m_arrayPtr[index];
 }
 
 Vector Vector::operator+ (const Vector &rhs)
 {
     if (m_size != rhs.m_size)
-        throw std::exception("Size of arrays have to be equal\n");
+        throw ArrayNotEqual(); 
 
     Vector temp(m_size,0);
     for (int i = 0; i < m_size; ++i)
@@ -89,7 +76,7 @@ Vector Vector::operator* (const Vector &rhs)
            temp.m_arrayPtr[ i ] = m_arrayPtr[ i ] * rhs.m_arrayPtr[ i ];
         return temp;
     }
-    throw std::exception("Size of arrays have to be equal\n");
+    throw ArrayNotEqual();
 }
 
 Vector operator+ (int value, const Vector& rhs)
@@ -101,7 +88,7 @@ Vector operator+ (int value, const Vector& rhs)
             temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] + value;
         return temp;
     }
-    throw std::exception("Cannot add number to uninitialized Vector\n");
+    throw Vector::UninitializedVector();
 }
 
 Vector operator* (int value,const Vector& rhs)
@@ -113,14 +100,19 @@ Vector operator* (int value,const Vector& rhs)
             temp.m_arrayPtr[i] = rhs.m_arrayPtr[ i ] * value;
         return temp; 
     }
-    throw std::exception("Cannot multiply number to uninitialized Vector\n");
+    throw Vector::UninitializedVector(); 
 }
 
 std::ostream& operator<< (std::ostream& os, const Vector& rhs)
 {
-    for (int i = 0; i < rhs.m_size; ++i)
-        os << rhs.m_arrayPtr[ i ] << " ";
-    return os;
+    if(rhs.m_size != 0)
+    {
+        for (int i = 0; i < rhs.m_size; ++i)
+            os << rhs.m_arrayPtr[ i ] << " ";
+        return os;
+    }
+    else
+        throw Vector::UninitializedVector();
 }
 
 std::istream& operator>> (std::istream& is, Vector& rhs)
@@ -129,7 +121,6 @@ std::istream& operator>> (std::istream& is, Vector& rhs)
         is >> rhs.m_arrayPtr[i];
     return is;
 }
-
 
 //returns quantity of elements of a vector
 int Vector::size() const
@@ -149,7 +140,7 @@ void Vector::reverse()
         std::swap(m_arrayPtr[ i ], m_arrayPtr[m_size - i - 1]);
 }
 
-void Vector::add(int value)
+void Vector::push_back(int value)
 {
     if (m_size < m_capacity)
         m_arrayPtr[ m_size++ ] = value;
@@ -164,3 +155,169 @@ void Vector::add(int value)
         m_arrayPtr = arrayPtrTemp;
     }
 }
+
+const int* Vector::begin() const
+{
+    return m_arrayPtr;
+}
+
+const int* Vector::end() const
+{
+    return m_arrayPtr + m_size;
+}
+
+int& Vector::at(int index) const
+{
+    if (m_size == 0)
+        throw ElementNotExists(); 
+
+    if (index < 0 || index >= m_size)
+        throw WrongIndex(); 
+
+    return m_arrayPtr[index];
+}
+
+const int& Vector::at(int index)
+{
+    if (m_size == 0)
+        throw ElementNotExists(); 
+
+    if (index < 0 || index >= m_size)
+        throw WrongIndex(); 
+
+    return m_arrayPtr[index];
+}
+
+void Vector::null()
+{      
+    for (int i = 0; i < m_size; ++i)
+        m_arrayPtr[i] = 0;
+    /* m_size = 0; ???? */
+}
+
+bool Vector::empty() const
+{  
+    if (m_size == 0)
+        return true;
+    else 
+        return false;
+}
+
+void Vector::insert(int element, int position)
+{
+    if (position < 0 || position > m_size)
+    {
+         throw WrongIndex();
+    }
+
+    if (m_size < m_capacity)
+    {
+        for (int i = m_size - 1; i > position - 1; --i)
+            m_arrayPtr[i + 1] = m_arrayPtr[i];
+        m_arrayPtr[position] = element;
+        m_size++;
+    }
+
+    else
+    {
+        m_capacity = m_size + DEFAULT_SIZE;
+        int* arrayPtrTemp = new int[ m_capacity ];
+        std::copy(m_arrayPtr, m_arrayPtr + m_size, arrayPtrTemp);
+        delete[] m_arrayPtr;
+
+        for (int i = m_size - 1; i > position - 1; --i)
+            arrayPtrTemp[i + 1] = arrayPtrTemp[i];
+        arrayPtrTemp[ position ] = element;
+        m_size++;
+
+        m_arrayPtr = arrayPtrTemp;
+    }
+}
+
+void Vector::insert(int* begin, int* end, int position)
+{
+    int seqLength = end - begin;
+    
+    if (position < 0 || position > m_size)
+    {
+         throw WrongIndex();
+    }
+
+    if (seqLength < m_capacity - m_size)
+    {
+        for (int i = m_size - 1; i > position - 1; --i)
+            m_arrayPtr[i + seqLength] = m_arrayPtr[i];
+        
+        for (int i = position; i < position + seqLength; ++i, begin++)
+            m_arrayPtr[i] = *begin;
+
+        m_size += seqLength;
+    }
+
+    else
+    {
+        m_capacity = m_size + DEFAULT_SIZE + seqLength;
+        int* arrayPtrTemp = new int[ m_capacity ];
+        std::copy(m_arrayPtr, m_arrayPtr + m_size, arrayPtrTemp);
+        delete[] m_arrayPtr;
+
+        for (int i = m_size - 1; i > position - 1; --i)
+            arrayPtrTemp[i + seqLength] = arrayPtrTemp[i];
+        
+        for (int i = position; i < position + seqLength; ++i, begin++)
+            arrayPtrTemp[i] = *begin;
+
+        m_size += seqLength;
+
+        m_arrayPtr = arrayPtrTemp;
+    }
+}
+        
+void Vector::clear()
+{
+    delete [] m_arrayPtr;
+    --m_arrayCounter;
+
+    m_size = 0;
+    m_capacity = DEFAULT_SIZE;
+    m_arrayPtr = new int[ m_capacity ];
+
+    m_arrayCounter++;
+}
+
+void Vector::erase(int position)
+{
+    for (int i = position; i < m_size; ++i)
+        m_arrayPtr[i] = m_arrayPtr[i + 1];
+    m_arrayPtr[m_size] = 0;
+    m_size--;
+}
+
+void Vector::erase(int* begin, int* end, int position)
+{
+    int seqLength = end - begin;
+    if(seqLength < m_size)
+    {
+        for (int i = position; i < m_size; ++i)
+            m_arrayPtr[i] = m_arrayPtr[i + seqLength];
+
+        m_capacity = m_size + DEFAULT_SIZE - seqLength;
+        int* arrayPtrTemp = new int[ m_capacity ];
+        std::copy(m_arrayPtr, m_arrayPtr + m_size - seqLength, arrayPtrTemp);
+        delete[] m_arrayPtr;
+        m_size -= seqLength;
+
+        m_arrayPtr = arrayPtrTemp;
+    }
+    else
+        throw ElementNotExists();
+}
+        
+
+            
+        
+
+
+
+
+
